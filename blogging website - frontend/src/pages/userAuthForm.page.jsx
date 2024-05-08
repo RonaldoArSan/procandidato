@@ -3,10 +3,14 @@ import React from "react";
 import InputBox from "../components/input.component";
 import googleIcon from "../imgs/google.png";
 import {NavLink} from 'react-router-dom'
+import AnimationWrapper from "../common/page-animation";
 
 export default function UserAuthForm({ type }) {
   return (
-    <section className="h-cover flex items-center justify-center">
+    <AnimationWrapper
+    keyValue={type}
+    >
+         <section className="h-cover flex items-center justify-center">
       <form className="w-[80%] max-w-[400px] items-center">
         <h1 className="text-4xl font-gelasio capitalize text-center mb-24">
           {type === "sign-in" ? "Bem vindo de Volta" : "Cadastre Agora"}
@@ -77,5 +81,7 @@ export default function UserAuthForm({ type }) {
         )}
       </form>
     </section>
+    </AnimationWrapper>
+   
   );
 }
