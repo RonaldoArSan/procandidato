@@ -1,7 +1,10 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import 'dotenv/config'
-import bcript from "bcrypt"
+import bcript, { hash } from "bcrypt"
+
+
+import User from "./Schema/User.js"
 
 
 const username = encodeURIComponent("<username>");
@@ -23,28 +26,48 @@ mongoose.connect(process.env.DB_LOCATION,
   }
 )
 
-server.post("/signup", (req, res)=> {
+server.post("/signup", (req, res) => {
 
- let {fullname, email, password} = req.body
+  let { fullname, email, password } = req.body
 
- if (fullname.length < 3) {
-  return res.status(403).json ({"error": "Fullname deve ter mais que 3 digitos"})
-}
+  if (fullname.length < 3) {
+    return res.status(403).json({ "error": "Fullname deve ter mais que 3 digitos" })
+  }
 
-if (!email.length){
-  return res.status(403).json ({"error": "Entre com um email valido"})
-}
-if (!emailRegex.test(email)){
-  return res.status(403).json({"error": "Email invalido"})
-}
+  if (!email.length) {
+    return res.status(403).json({ "error": "Entre com um email valido" })
+  }
+  if (!emailRegex.test(email)) {
+    return res.status(403).json({ "error": "Email invalido" })
+  }
 
-if(!passwordRegex.test(password)){
-  return res.status(403).json({"error":"Senha deve conter de 6 a 15 caracters com caracteres especiais."})
-}
+  if (!passwordRegex.test(password)) {
+    return res.status(403).json({ "error": "Senha deve conter de 6 a 15 caracters com caracteres especiais." })
+  }
 
-  return res.status(200).json({"status": "Ok"})
+  bcript.hash(password, 10, (err, hash_password) => {
+    let username = email.split("@")[0]
+    let user = new User({
+      personal_info: { fullname, email, password: hash_password, username }
+    })
+
+    user.save().then((u) => {
+      return res.status(200).json({ user: u })
+    })
+      .catch(err => {
+
+        if(err.code === 11000) {
+          return res.status(409).json({ error: 'Usuario já existe'})
+        } else{
+          console.log("Erro no servidor ao criar usuario: ", err);
+          return res.status(500).json({ error: `Erro interno do servidor`})
+        }
+
+        return res.status(500).json({ "error": err.message })
+      })
+
+  })
 })
-
 
 
 server.listen(port, () => {
